@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Responsive Registration Form</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #eef2f7;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+    }
+
+    .form-container {
+      background: #fff;
+      padding: 25px;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      width: 100%;
+      max-width: 420px;
+    }
+
+    .form-container h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #333;
+    }
+
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: bold;
+      color: #555;
+    }
+
+    .form-group input,
+    .form-group select {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 14px;
+      box-sizing: border-box;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus {
+      border-color: #007bff;
+      outline: none;
+    }
+
+    .password-field {
+      position: relative;
+    }
+
+    .password-field input {
+      padding-right: 60px;
+    }
+
+    .password-toggle {
+      position: absolute;
+      top: 50%;
+      right: 10px;
+      transform: translateY(-50%);
+      padding: 4px;
+      border: none;
+      background: transparent;
+      color: #007bff;
+      cursor: pointer;
+      font-size: 13px;
+    }
+
+    .password-toggle:focus-visible {
+      outline: 2px solid #007bff;
+      outline-offset: 2px;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 12px;
+      background: #007bff;
+      border: none;
+      border-radius: 6px;
+      color: #fff;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    .btn:hover {
+      background: #0056b3;
+    }
+
+    @media (max-width: 500px) {
+      .form-container {
+        padding: 20px;
+      }
+      .btn {
+        font-size: 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="form-container">
+    <h2>Create Account</h2>
+    <form id="registrationForm">
+      <div class="form-group">
+        <label for="fullname">Full Name</label>
+        <input type="text" id="fullname" name="fullname" required>
+      </div>
+      <div class="form-group">
+        <label for="email">Email Address</label>
+        <input type="email" id="email" name="email" required>
+      </div>
+      <div class="form-group">
+        <label for="department">Department</label>
+        <select id="department" name="department" required>
+          <option value="">Select a department</option>
+          <option value="cse">CSE</option>
+          <option value="aids">AIDS</option>
+          <option value="mech">MECH</option>
+          <option value="it">IT</option>
+          <option value="eee">EEE</option>
+          <option value="ece">ECE</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="year">Year</label>
+        <select id="year" name="year" required>
+          <option value="">Select a year</option>
+          <option value="1st-year">1st Year</option>
+          <option value="2nd-year">2nd Year</option>
+          <option value="3rd-year">3rd Year</option>
+          <option value="4th-year">4th Year</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="password">Password</label>
+        <div class="password-field">
+          <input type="password" id="password" name="password" required>
+          <button type="button" class="password-toggle" aria-controls="password" aria-pressed="false">Show</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="confirm-password">Confirm Password</label>
+        <div class="password-field">
+          <input type="password" id="confirm-password" name="confirm-password" required>
+          <button type="button" class="password-toggle" aria-controls="confirm-password" aria-pressed="false">Show</button>
+        </div>
+      </div>
+      <button type="submit" class="btn">Register</button>
+    </form>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script>
+    const registrationForm = document.getElementById('registrationForm');
+    const storageKey = 'studentRegistrations';
+
+    document.querySelectorAll('.password-toggle').forEach(function (toggle) {
+      toggle.addEventListener('click', function () {
+        const passwordInput = document.getElementById(toggle.getAttribute('aria-controls'));
+        const isVisible = passwordInput.type === 'text';
+
+        passwordInput.type = isVisible ? 'password' : 'text';
+        toggle.textContent = isVisible ? 'Show' : 'Hide';
+        toggle.setAttribute('aria-pressed', String(!isVisible));
+      });
+    });
+
+    function getSavedRegistrations() {
+      try {
+        const saved = localStorage.getItem(storageKey);
+        return saved ? JSON.parse(saved) : [];
+      } catch (error) {
+        return [];
+      }
+    }
+
+    function saveRegistrations(data) {
+      localStorage.setItem(storageKey, JSON.stringify(data));
+    }
+
+    registrationForm.addEventListener('submit', function (event) {
+      event.preventDefault();
+
+      const formData = new FormData(registrationForm);
+      const newRegistration = {
+        FullName: formData.get('fullname'),
+        Email: formData.get('email'),
+        Department: formData.get('department'),
+        Year: formData.get('year')
+      };
+
+      const registrations = getSavedRegistrations();
+      registrations.push(newRegistration);
+      saveRegistrations(registrations);
+
+      const worksheet = XLSX.utils.json_to_sheet(registrations);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Registrations');
+      XLSX.writeFile(workbook, 'registrations.xlsx');
+
+      alert('Registration saved successfully to an Excel file.');
+      registrationForm.reset();
+    });
+  </script>
+</body>
+</html>
